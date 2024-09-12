@@ -1,84 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Gallery</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-        .gallery {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-        .gallery-item {
-            max-width: 300px;
-            margin: 10px;
-        }
-        .gallery-item img,
-        .gallery-item video,
-        .gallery-item audio {
-            max-width: 100%;
-            height: auto;
-        }
-        .gallery-item video,
-        .gallery-item audio {
-            display: block;
-            margin: 0 auto;
-        }
-    </style>
-</head>
-<body>
-    <h1>Media Gallery</h1>
-    <div class="gallery" id="gallery"></div>
+function fetchMediaList() {
+    fetch('https://anahera-o-te-hau-9b81509d9030.herokuapp.com/api/list-files')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fetched media list:', data);
+            // Update the DOM with the fetched media list
+        })
+        .catch(error => {
+            console.error('Error fetching media list:', error);
+        });
+}
 
-    <script>
-        const S3_BUCKET_URL = 'https://meditation-bot-bucket.s3.ap-southeast-2.amazonaws.com/'; // Update with your S3 bucket URL
-
-        function fetchMediaList() {
-            // Fetch a list of files from your Flask server
-            fetch('https://anahera-o-te-hau-9b81509d9030.herokuapp.com/api/list-files')
-                .then(response => response.json())
-                .then(data => {
-                    displayMedia(data.files);
-                })
-                .catch(error => console.error('Error fetching media list:', error));
-        }
-
-        function displayMedia(files) {
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
-
-            files.forEach(file => {
-                const fileUrl = S3_BUCKET_URL + file;
-                let mediaElement;
-
-                if (file.endsWith('.jpg') || file.endsWith('.png')) {
-                    mediaElement = `<img src="${fileUrl}" alt="${file}" />`;
-                } else if (file.endsWith('.mp4')) {
-                    mediaElement = `<video controls src="${fileUrl}"></video>`;
-                } else if (file.endsWith('.mp3')) {
-                    mediaElement = `<audio controls src="${fileUrl}"></audio>`;
-                }
-
-                if (mediaElement) {
-                    const item = document.createElement('div');
-                    item.className = 'gallery-item';
-                    item.innerHTML = mediaElement;
-                    gallery.appendChild(item);
-                }
-            });
-        }
-
-        // Load media list on page load
-        document.addEventListener('DOMContentLoaded', fetchMediaList);
-    </script>
-</body>
-</html>
-
+// Call the function on page load or as needed
+fetchMediaList();
