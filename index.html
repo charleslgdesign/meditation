@@ -5,51 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Media Gallery</title>
     <style>
-        .media-item { margin: 10px; }
-        img, video, audio { max-width: 100%; height: auto; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        .gallery-item {
+            max-width: 300px;
+            margin: 10px;
+        }
+        .gallery-item img,
+        .gallery-item video,
+        .gallery-item audio {
+            max-width: 100%;
+            height: auto;
+        }
+        .gallery-item video,
+        .gallery-item audio {
+            display: block;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
     <h1>Media Gallery</h1>
-    <div id="media-container"></div>
+    <div class="gallery" id="gallery"></div>
 
     <script>
-        async function fetchMedia() {
-            const mediaContainer = document.getElementById('media-container');
-            const apiURL = 'http://127.0.0.1:5000/api/get-media-links';  // Replace with your Flask server URL
+        const S3_BUCKET_URL = 'https://meditation-bot-bucket.s3.ap-southeast-2.amazonaws.com/'; // Update with your S3 bucket URL
 
-            try {
-                const response = await fetch(apiURL);
-                const files = await response.json();
-
-                // Clear existing content
-                mediaContainer.innerHTML = '';
-
-                files.forEach(file => {
-                    const mediaItem = document.createElement('div');
-                    mediaItem.classList.add('media-item');
-
-                    if (file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png') || file.endsWith('.gif')) {
-                        mediaItem.innerHTML = `<img src="${file}" alt="Image">`;
-                    } else if (file.endsWith('.mp4') || file.endsWith('.mov')) {
-                        mediaItem.innerHTML = `<video controls><source src="${file}" type="video/mp4">Your browser does not support the video tag.</video>`;
-                    } else if (file.endsWith('.mp3') || file.endsWith('.wav')) {
-                        mediaItem.innerHTML = `<audio controls><source src="${file}" type="audio/mpeg">Your browser does not support the audio element.</audio>`;
-                    }
-
-                    mediaContainer.appendChild(mediaItem);
-                });
-            } catch (error) {
-                console.error('Error fetching media:', error);
-                mediaContainer.innerHTML = '<p>Failed to load media files.</p>';
-            }
+        function fetchMediaList() {
+            // Fetch a list of files from your Flask server
+            fetch('https://anahera-o-te-hau-9b81509d9030.herokuapp.com/api/list-files')
+                .then(response => response.json())
+                .then(data => {
+                    displayMedia(data.files);
+                })
+                .catch(error => console.error('Error fetching media list:', error));
         }
 
-        // Fetch media when the page loads
-        window.onload = fetchMedia;
+        function displayMedia(files) {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
 
-        // Optionally, you can set up an interval to periodically refresh media
-        // setInterval(fetchMedia, 60000); // Refresh every 60 seconds
+            files.forEach(file => {
+                const fileUrl = S3_BUCKET_URL + file;
+                let mediaElement;
+
+                if (file.endsWith('.jpg') || file.endsWith('.png')) {
+                    mediaElement = `<img src="${fileUrl}" alt="${file}" />`;
+                } else if (file.endsWith('.mp4')) {
+                    mediaElement = `<video controls src="${fileUrl}"></video>`;
+                } else if (file.endsWith('.mp3')) {
+                    mediaElement = `<audio controls src="${fileUrl}"></audio>`;
+                }
+
+                if (mediaElement) {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    item.innerHTML = mediaElement;
+                    gallery.appendChild(item);
+                }
+            });
+        }
+
+        // Load media list on page load
+        document.addEventListener('DOMContentLoaded', fetchMediaList);
     </script>
 </body>
 </html>
+
