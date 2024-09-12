@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Gallery</title>
+    <style>
+        .media-item { margin: 10px; }
+        img, video, audio { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <h1>Media Gallery</h1>
+    <div id="media-container"></div>
+
+    <script>
+        async function fetchMedia() {
+            const mediaContainer = document.getElementById('media-container');
+            const apiURL = 'http://127.0.0.1:5000/api/get-media-links';  // Replace with your Flask server URL
+
+            try {
+                const response = await fetch(apiURL);
+                const files = await response.json();
+
+                // Clear existing content
+                mediaContainer.innerHTML = '';
+
+                files.forEach(file => {
+                    const mediaItem = document.createElement('div');
+                    mediaItem.classList.add('media-item');
+
+                    if (file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png') || file.endsWith('.gif')) {
+                        mediaItem.innerHTML = `<img src="${file}" alt="Image">`;
+                    } else if (file.endsWith('.mp4') || file.endsWith('.mov')) {
+                        mediaItem.innerHTML = `<video controls><source src="${file}" type="video/mp4">Your browser does not support the video tag.</video>`;
+                    } else if (file.endsWith('.mp3') || file.endsWith('.wav')) {
+                        mediaItem.innerHTML = `<audio controls><source src="${file}" type="audio/mpeg">Your browser does not support the audio element.</audio>`;
+                    }
+
+                    mediaContainer.appendChild(mediaItem);
+                });
+            } catch (error) {
+                console.error('Error fetching media:', error);
+                mediaContainer.innerHTML = '<p>Failed to load media files.</p>';
+            }
+        }
+
+        // Fetch media when the page loads
+        window.onload = fetchMedia;
+
+        // Optionally, you can set up an interval to periodically refresh media
+        // setInterval(fetchMedia, 60000); // Refresh every 60 seconds
+    </script>
+</body>
+</html>
